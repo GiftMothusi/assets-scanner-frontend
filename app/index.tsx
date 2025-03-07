@@ -144,28 +144,28 @@ export default function HomeScreen() {
                 style={styles.actionCard}
                 onPress={() => router.push('/assets/scan')}
             >
-                <Ionicons name="scan-outline" size={24} color="#4A90E2" />
+                <Ionicons name="scan-outline" size={28} color="#4A90E2" />
                 <Text style={styles.actionText}>Scan Asset</Text>
             </TouchableOpacity>
             <TouchableOpacity 
                 style={styles.actionCard}
                 onPress={() => router.push('/assets')}
             >
-                <Ionicons name="list-outline" size={24} color="#4A90E2" />
+                <Ionicons name="list-outline" size={28} color="#4A90E2" />
                 <Text style={styles.actionText}>View Assets</Text>
             </TouchableOpacity>
             <TouchableOpacity 
                 style={styles.actionCard}
                 onPress={() => router.push('/assets/add')}
             >
-                <Ionicons name="add-circle-outline" size={24} color="#4A90E2" />
+                <Ionicons name="add-circle-outline" size={28} color="#4A90E2" />
                 <Text style={styles.actionText}>Add Asset</Text>
             </TouchableOpacity>
             <TouchableOpacity 
                 style={styles.actionCard}
                 onPress={() => router.push('/reports')}
                 >
-                <Ionicons name="document-text-outline" size={24} color="#4A90E2" />
+                <Ionicons name="document-text-outline" size={28} color="#4A90E2" />
                 <Text style={styles.actionText}>Reports</Text>
             </TouchableOpacity>
           </View>
@@ -328,26 +328,27 @@ const styles = StyleSheet.create({
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -8,
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
   },
   actionCard: {
-    width: '50%',
-    paddingHorizontal: 8,
-    marginBottom: 16,
+    width: '48%',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 20,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   actionText: {
     color: '#333',
     fontWeight: '500',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 12,
+    fontSize: 15,
   },
 });

@@ -11,7 +11,7 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { SelectList } from 'react-native-dropdown-select-list';
 import { useAuth } from '@/context/authContext';
 import { useRouter } from 'expo-router';
 import apiClient from '@/api/apiClient';
@@ -154,18 +154,23 @@ export default function RegisterScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Role</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={role}
-                onValueChange={(itemValue) => setRole(itemValue as 'admin' | 'manager' | 'scanner')}
-                enabled={!isLoading}
-                style={styles.picker}
-              >
-                <Picker.Item label="Scanner" value="scanner" />
-                <Picker.Item label="Manager" value="manager" />
-                <Picker.Item label="Admin" value="admin" />
-              </Picker>
-            </View>
+            <SelectList
+              setSelected={(val: string) => setRole(val as 'admin' | 'manager' | 'scanner')}
+              data={[
+                { key: 'scanner', value: 'Scanner' },
+                { key: 'manager', value: 'Manager' },
+                { key: 'admin', value: 'Admin' }
+              ]}
+              save="key"
+              defaultOption={{ key: role, value: role.charAt(0).toUpperCase() + role.slice(1) }}
+              search={false}
+              boxStyles={[styles.dropdownBox, isLoading && styles.dropdownDisabled]}
+              dropdownStyles={styles.dropdown}
+              dropdownTextStyles={styles.dropdownText}
+              inputStyles={styles.dropdownInput}
+              disabled={isLoading}
+              placeholder="Select Role"
+            />
           </View>
 
           <View style={styles.inputContainer}>
@@ -173,19 +178,18 @@ export default function RegisterScreen() {
             {loadingDepartments ? (
               <ActivityIndicator size="small" color="#4A90E2" />
             ) : (
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={departmentId}
-                  onValueChange={(itemValue) => setDepartmentId(itemValue.toString())}
-                  enabled={!isLoading}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Select Department" value="" />
-                  {departments.map((dept) => (
-                    <Picker.Item key={dept.id} label={dept.name} value={dept.id.toString()} />
-                  ))}
-                </Picker>
-              </View>
+              <SelectList
+                setSelected={setDepartmentId}
+                data={departments.map(dept => ({ key: dept.id.toString(), value: dept.name }))}
+                save="key"
+                placeholder="Select Department"
+                search={false}
+                boxStyles={[styles.dropdownBox, isLoading && styles.dropdownDisabled]}
+                dropdownStyles={styles.dropdown}
+                dropdownTextStyles={styles.dropdownText}
+                inputStyles={styles.dropdownInput}
+                disabled={isLoading}
+              />
             )}
           </View>
 
@@ -264,14 +268,46 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
-  pickerContainer: {
+  dropdownBox: {
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-  },
-  picker: {
+    marginTop: 2,
     height: 50,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+  },
+  dropdownDisabled: {
+    opacity: 0.7,
+    backgroundColor: '#f5f5f5',
+  },
+  dropdown: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderColor: '#e0e0e0',
+    marginTop: 5,
+    maxHeight: 150,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dropdownInput: {
+    color: '#333',
+    fontSize: 16,
+    textAlign: 'left',
+    fontWeight: '500',
+  },
+  dropdownText: {
+    color: '#333',
+    fontSize: 16,
+    padding: 8,
+    fontWeight: '500',
   },
   registerButton: {
     backgroundColor: '#4A90E2',
