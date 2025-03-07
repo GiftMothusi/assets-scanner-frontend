@@ -15,7 +15,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '@/context/authContext';
 import { useRouter } from 'expo-router';
 import apiClient from '@/api/apiClient';
-
+import { fetchPublicDepartments } from '@/api/departmentService';
 
 interface Department {
   id: number;
@@ -40,8 +40,9 @@ export default function RegisterScreen() {
     const fetchDepartments = async () => {
       setLoadingDepartments(true);
       try {
-        const response = await apiClient.get('/departments');
-        setDepartments(response.data);
+        // Use the new public endpoint
+        const data = await fetchPublicDepartments();
+        setDepartments(data);
       } catch (error) {
         console.error('Error fetching departments:', error);
         Alert.alert('Error', 'Failed to fetch departments. Please try again.');
@@ -213,6 +214,7 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Styles remain the same as before
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
