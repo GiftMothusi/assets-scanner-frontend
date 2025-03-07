@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Slot, router, useSegments } from 'expo-router';
-import { AuthProvider, useAuth } from '../src/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/authContext';
+
 
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
@@ -13,7 +14,7 @@ function AuthGuard() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup = segments[0] === 'login' || segments[0] === 'register';
     
     // If the user is not authenticated and not on an auth screen, redirect to login
     if (!isAuthenticated && !inAuthGroup) {

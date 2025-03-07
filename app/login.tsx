@@ -11,7 +11,8 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
-import { useAuth } from '../src/context/AuthContext';
+import { useAuth } from '@/context/authContext';
+
 import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {

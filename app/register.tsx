@@ -12,9 +12,10 @@ import {
   Alert
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { useAuth } from '../src/context/AuthContext';
+import { useAuth } from '@/context/authContext';
 import { useRouter } from 'expo-router';
-import apiClient from '../src/api/apiClient';
+import apiClient from '@/api/apiClient';
+
 
 interface Department {
   id: number;
