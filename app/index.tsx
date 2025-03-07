@@ -81,8 +81,10 @@ export default function HomeScreen() {
               <Text style={styles.userInfoValue}>{user?.role}</Text>
             </View>
             <View style={styles.userInfoRow}>
-              <Text style={styles.userInfoLabel}>Department ID:</Text>
-              <Text style={styles.userInfoValue}>{user?.department_id || 'Not assigned'}</Text>
+              <Text style={styles.userInfoLabel}>Department:</Text>
+              <Text style={styles.userInfoValue}>
+                {departmentCounts.find((dept, index) => index + 1 === user?.department_id)?.department_name || 'Not assigned'}
+              </Text>
             </View>
           </View>
         </View>
