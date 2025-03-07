@@ -142,7 +142,7 @@ export default function HomeScreen() {
           <View style={styles.actionsGrid}>
             <TouchableOpacity 
                 style={styles.actionCard}
-                onPress={() => router.push('/scanner')}
+                onPress={() => router.push('/assets/scan')}
             >
                 <Ionicons name="scan-outline" size={24} color="#4A90E2" />
                 <Text style={styles.actionText}>Scan Asset</Text>
