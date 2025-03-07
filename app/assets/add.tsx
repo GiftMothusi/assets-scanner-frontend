@@ -16,8 +16,10 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import apiClient from '@/api/apiClient';
+import { fetchPublicDepartments } from '@/api/departmentService';
 
-// Mock department data
+// Department interface
 interface Department {
   id: number;
   name: string;
@@ -38,24 +40,28 @@ export default function AddAssetScreen() {
   const [expectedLifetime, setExpectedLifetime] = useState('');
   const [departmentId, setDepartmentId] = useState<number | null>(null);
   const [selectedDepartmentName, setSelectedDepartmentName] = useState('Select Department');
+  const [showDepartments, setShowDepartments] = useState(false);
 
   useEffect(() => {
-    // Fetch departments - in a real app this would be an API call
-    setTimeout(() => {
-      setDepartments([
-        { id: 1, name: 'IT' },
-        { id: 2, name: 'HR' },
-        { id: 3, name: 'Finance' },
-        // app/assets/add.tsx (continued)
-        { id: 3, name: 'Finance' },
-        { id: 4, name: 'Marketing' },
-        { id: 5, name: 'Operations' }
-      ]);
-      setDepartmentsLoading(false);
-    }, 1000);
+    // Fetch real departments from the API
+    const loadDepartments = async () => {
+      setDepartmentsLoading(true);
+      try {
+        const deptData = await fetchPublicDepartments();
+        setDepartments(deptData);
+      } catch (error) {
+        console.error('Error loading departments:', error);
+        Alert.alert('Error', 'Failed to load departments');
+      } finally {
+        setDepartmentsLoading(false);
+      }
+    };
     
-    // Generate a default asset code
-    setAssetCode('ASSET-' + Math.floor(Math.random() * 900 + 100)); // Random 3-digit number
+    loadDepartments();
+    
+    // Generate a default asset code with timestamp for uniqueness
+    const timestamp = new Date().getTime().toString().slice(-6);
+    setAssetCode('ASSET-' + timestamp);
   }, []);
 
   const selectDepartment = (department: Department) => {
@@ -64,9 +70,7 @@ export default function AddAssetScreen() {
     setShowDepartments(false);
   };
 
-  const [showDepartments, setShowDepartments] = useState(false);
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate form
     if (!name) {
       Alert.alert('Error', 'Asset name is required');
@@ -80,20 +84,45 @@ export default function AddAssetScreen() {
     
     setLoading(true);
     
-    // In a real app, you would submit to your API here
-    setTimeout(() => {
-      setLoading(false);
+    // Prepare data for API
+    const assetData = {
+      name,
+      asset_code: assetCode,
+      description,
+      purchase_date: purchaseDate || null,
+      purchase_cost: purchaseCost ? parseFloat(purchaseCost) : null,
+      expected_lifetime_months: expectedLifetime ? parseInt(expectedLifetime) : null,
+      department_id: departmentId,
+      current_condition: 'good', // Default condition for new assets
+      is_active: true
+    };
+    
+    try {
+      // Submit to the API
+      const response = await apiClient.post('/assets', assetData);
+      
+      // Handle success
       Alert.alert(
         'Success',
         'Asset added successfully',
-        [
-          { 
-            text: 'OK', 
-            onPress: () => router.push('/assets')
-          }
-        ]
+        [{ 
+          text: 'OK', 
+          onPress: () => router.push('/assets')
+        }]
       );
-    }, 1500);
+    } catch (error: any) {
+      // Handle error
+      console.error('Error adding asset:', error);
+      
+      let errorMessage = 'Failed to add asset. Please try again.';
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -195,7 +224,7 @@ export default function AddAssetScreen() {
           </View>
           
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Purchase Cost ($)</Text>
+            <Text style={styles.label}>Purchase Cost (R)</Text>
             <TextInput
               style={styles.input}
               value={purchaseCost}
@@ -244,6 +273,7 @@ export default function AddAssetScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Styles remain unchanged
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',

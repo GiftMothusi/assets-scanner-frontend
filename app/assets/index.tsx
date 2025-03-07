@@ -8,80 +8,66 @@ import {
   TouchableOpacity, 
   ActivityIndicator,
   TextInput,
-  SafeAreaView
+  SafeAreaView,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-
-// Create a simple Asset interface for mock data
-interface Asset {
-  id: number;
-  asset_code: string;
-  name: string;
-  description: string;
-  department_name: string;
-  current_condition: 'good' | 'fair' | 'poor' | 'damaged';
-}
+import assetService, { Asset, AssetPagination } from '@/api/assetService';
 
 export default function AssetsScreen() {
   const router = useRouter();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAssets = async (page = 1, search = '') => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      let response: AssetPagination;
+      
+      if (search) {
+        response = await assetService.searchAssets(search);
+      } else {
+        response = await assetService.getAssets({ page });
+      }
+      
+      setAssets(response.data);
+      setCurrentPage(response.current_page);
+      setTotalPages(response.last_page);
+    } catch (err) {
+      console.error('Error fetching assets:', err);
+      setError('Failed to load assets. Please try again.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    // In a real app, you would fetch from your API
-    setTimeout(() => {
-      setAssets([
-        {
-          id: 1,
-          asset_code: 'ASSET-001',
-          name: 'Dell XPS Laptop',
-          description: 'Developer laptop',
-          department_name: 'IT',
-          current_condition: 'good',
-        },
-        {
-          id: 2,
-          asset_code: 'ASSET-002',
-          name: 'HP Printer',
-          description: 'Office printer',
-          department_name: 'HR',
-          current_condition: 'fair',
-        },
-        {
-          id: 3,
-          asset_code: 'ASSET-003',
-          name: 'MacBook Pro',
-          description: 'Designer laptop',
-          department_name: 'Marketing',
-          current_condition: 'good',
-        },
-        {
-          id: 4,
-          asset_code: 'ASSET-004',
-          name: 'Logitech Webcam',
-          description: 'Conference room camera',
-          department_name: 'Operations',
-          current_condition: 'poor',
-        },
-        {
-          id: 5,
-          asset_code: 'ASSET-005',
-          name: 'Projector',
-          description: 'Meeting room projector',
-          department_name: 'IT',
-          current_condition: 'damaged',
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
+    fetchAssets();
   }, []);
 
   const handleSearch = () => {
-    // Filter assets based on search query
-    console.log('Searching for:', searchQuery);
+    fetchAssets(1, searchQuery);
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchAssets(1, searchQuery);
+  };
+
+  const loadMoreAssets = () => {
+    if (currentPage < totalPages && !loading) {
+      fetchAssets(currentPage + 1, searchQuery);
+    }
   };
 
   const renderConditionBadge = (condition: string) => {
@@ -118,7 +104,9 @@ export default function AssetsScreen() {
           <Text style={styles.assetName}>{item.name}</Text>
           <Text style={styles.assetCode}>{item.asset_code}</Text>
           <View style={styles.assetDetails}>
-            <Text style={styles.assetDepartment}>{item.department_name}</Text>
+            <Text style={styles.assetDepartment}>
+              {item.department ? item.department.name : 'No Department'}
+            </Text>
             {renderConditionBadge(item.current_condition)}
           </View>
         </View>
@@ -128,6 +116,17 @@ export default function AssetsScreen() {
       </View>
     </TouchableOpacity>
   );
+
+  const renderFooter = () => {
+    if (!loading || refreshing) return null;
+    
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#4A90E2" />
+        <Text style={styles.footerText}>Loading more assets...</Text>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -163,7 +162,19 @@ export default function AssetsScreen() {
         </TouchableOpacity>
       </View>
       
-      {loading ? (
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={() => fetchAssets(1, searchQuery)}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      {loading && assets.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4A90E2" />
           <Text style={styles.loadingText}>Loading assets...</Text>
@@ -174,10 +185,26 @@ export default function AssetsScreen() {
           renderItem={renderAssetItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.assetsList}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+          onEndReached={loadMoreAssets}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
               <Ionicons name="albums-outline" size={64} color="#CCCCCC" />
               <Text style={styles.emptyText}>No assets found</Text>
+              {searchQuery ? (
+                <TouchableOpacity 
+                  style={styles.clearSearchButton}
+                  onPress={() => {
+                    setSearchQuery('');
+                    fetchAssets();
+                  }}
+                >
+                  <Text style={styles.clearSearchText}>Clear search</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           )}
         />
@@ -236,6 +263,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  errorContainer: {
+    backgroundColor: '#FFEBEE',
+    padding: 12,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#D32F2F',
+    flex: 1,
+  },
+  retryButton: {
+    backgroundColor: '#D32F2F',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -243,6 +295,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
+    color: '#666',
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  footerText: {
+    marginLeft: 8,
     color: '#666',
   },
   assetsList: {
@@ -257,6 +319,17 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#999',
+  },
+  clearSearchButton: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#4A90E2',
+    borderRadius: 4,
+  },
+  clearSearchText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
   assetCard: {
     backgroundColor: '#FFFFFF',

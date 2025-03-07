@@ -126,7 +126,7 @@ export default function AssetDetailsScreen() {
             
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Purchase Cost:</Text>
-              <Text style={styles.detailValue}>${asset.purchase_cost.toFixed(2)}</Text>
+              <Text style={styles.detailValue}>R{asset.purchase_cost.toFixed(2)}</Text>
             </View>
             
             <View style={styles.detailRow}>
