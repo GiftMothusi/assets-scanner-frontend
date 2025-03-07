@@ -122,6 +122,80 @@ const assetService = {
     }
   },
 
+    /**
+   * Assets report by department
+   */
+  async getAssetsByDepartment(departmentName: string): Promise<AssetPagination> {
+    try {
+      const response = await apiClient.get('/assets/by-department', { 
+        params: { department: departmentName } 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching assets by department:', error);
+      throw error;
+    }
+  },
+
+    /**
+   * Assets report by condition
+   */
+
+  async getAssetsByCondition(condition: string): Promise<AssetPagination> {
+    try {
+      const response = await apiClient.get('/assets/by-condition', { 
+        params: { condition } 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching assets by condition:', error);
+      throw error;
+    }
+  },
+  
+//     /**
+//    * Recently scanned assets
+//    */
+//   async getRecentlyScannedAssets(): Promise<AssetPagination> {
+//     try {
+//       const response = await apiClient.get('/assets/recently-scanned');
+//       return response.data;
+//     } catch (error) {
+//       console.error('Error fetching recently scanned assets:', error);
+//       throw error;
+//     }
+//   },
+
+  async getRecentlyScannedAssets(): Promise<AssetPagination> {
+    try {
+      const response = await apiClient.get('/assets/recently-scanned');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching recently scanned assets:', error.response?.data || error.message);
+      
+      // If no recently scanned assets, return an empty pagination object
+      if (error.response?.status === 404) {
+        return {
+          current_page: 1,
+          data: [],
+          first_page_url: '',
+          from: 0,
+          last_page: 1,
+          last_page_url: '',
+          links: [],
+          next_page_url: null,
+          path: '',
+          per_page: 15,
+          prev_page_url: null,
+          to: 0,
+          total: 0
+        };
+      }
+      
+      throw error;
+    }
+  },
+
   /**
    * Search assets
    */
@@ -137,5 +211,7 @@ const assetService = {
     }
   }
 };
+
+
 
 export default assetService;

@@ -51,12 +51,23 @@ export default function ReportsScreen() {
   const router = useRouter();
 
   const handleReportSelect = (reportId: string) => {
-    // In a real app, you would navigate to the specific report
-    Alert.alert(
-      "Generate Report",
-      "This would generate and display the selected report. In a full implementation, you would be able to view, export or share this report.",
-      [{ text: "OK", onPress: () => console.log("OK Pressed") }]
-    );
+    switch(reportId) {
+        case '1': 
+            router.push('/reports/department');
+            break;
+        case '2': 
+            router.push('/reports/condition');
+            break;
+        case '3':
+            router.push('/reports/recently-scanned');
+            break;
+        default:
+          Alert.alert(
+            "Generate Report",
+            "This would generate and display the selected report. In a full implementation, you would be able to view, export or share this report.",
+            [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+          );
+      }
   };
 
   const renderReportItem = ({ item }: { item: typeof reportTypes[0] }) => (
